@@ -51,7 +51,7 @@ def fetch_repo_data(repo_slug, token):
         return [], 0
 
     issues_url = f"https://api.github.com/repos/{repo_slug}/issues"
-    params = {"state": "open", "sort": "created", "direction": "desc", "per_page": ISSES_PER_REPO_LIMIT}
+    params = {"state": "open", "sort": "created", "direction": "desc", "per_page": ISSUES_PER_REPO_LIMIT}
     try:
         issues_response = requests.get(issues_url, headers=headers, params=params, timeout=10)
         issues_response.raise_for_status()
