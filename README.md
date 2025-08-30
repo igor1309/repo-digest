@@ -1,5 +1,7 @@
 # Weekend Issues Digest
 
+![bot_icon](bot_icon.JPG)
+
 **Tagline:** Weekend snapshot of open issues from your private GitHub repositories delivered to your Telegram bot.
 
 **Purpose:** Simple personal automation. Runs Saturdays & Sundays at **07:15 MSK** and posts a structured Markdown report to a Telegram chat.
