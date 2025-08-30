@@ -8,3 +8,4 @@ igor1309/ideas
 igor1309/sentidex
 igor1309/swift-files-to-context
 igor1309/swift-imrx
+igor1309/weekend-issues-digest
