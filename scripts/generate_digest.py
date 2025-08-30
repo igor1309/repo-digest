@@ -14,15 +14,27 @@ TITLE_WORD_CLAMP = 18
 # --- Helper function for sanitizing titles ---
 def sanitize_title(title):
     """
-    Sanitizes issue titles for Telegram's legacy Markdown.
-    - Removes backticks
-    - Neutralizes markdown-breaking characters like stray brackets.
+    Sanitizes issue titles for Telegram's legacy Markdown by escaping
+    special characters.
     """
-    # Remove backticks
-    title = title.replace("`", "")
-    # Neutralize brackets that might break Markdown links if unbalanced
-    title = title.replace("[", "(").replace("]", ")")
-    return title
+    # Characters that have special meaning in Telegram's legacy Markdown
+    # We will escape these characters with a backslash.
+    # Note: We don't escape '#' as we use it for issue numbers.
+    # We don't escape '@' as we use it for usernames.
+    # We remove backticks as they are problematic even when escaped.
+    
+    escape_chars = r'_*[]()~`>#+-=|{}.!'
+
+    # First, remove backticks completely as they are tricky.
+    sanitized_title = title.replace('`', '')
+    
+    # Now, escape the other special characters
+    for char in escape_chars:
+        if char in sanitized_title:
+             # The character `\` is the escape character, so it needs to be escaped itself in the replacement string.
+            sanitized_title = sanitized_title.replace(char, '\\' + char)
+            
+    return sanitized_title
 
 # --- Helper function for clamping titles ---
 def clamp_title(title):
