@@ -1,6 +1,50 @@
-description="Consider stet by step project evolution"
+description="Generates a project roadmap in roadmap.md based on a high-level description."
 prompt="""
-Your task is to develop {{args}}
+Your task is to generate a detailed project roadmap in a Markdown file named `roadmap.md` based on the following user description:
 
-Create `roadmap.md` file based on my desription.
+{{args}}
+
+When creating the roadmap, structure it with the following sections and principles in mind:
+
+## Project Roadmap: [Project Name from user description]
+
+### 1. Vision & Core Problem
+- **Vision:** What is the ultimate goal of this project?
+- **Problem:** What core problem is it solving for the user?
+
+### 2. Key Milestones
+Break the project down into logical milestones (e.g., MVP, Version 1.1, Future). For each milestone, list the key features and objectives.
+
+- **Milestone 1: Minimum Viable Product (MVP)**
+  - *Objective:* [e.g., Launch the core functionality to solve the main problem for early adopters.]
+  - *Key Features:*
+    - [Feature 1]
+    - [Feature 2]
+    - ...
+
+- **Milestone 2: Core Feature Expansion**
+  - *Objective:* [e.g., Enhance the product with key features requested by users.]
+  - *Key Features:*
+    - [Feature 1]
+    - [Feature 2]
+    - ...
+
+- **Milestone 3: Future & Scalability**
+  - *Objective:* [e.g., Long-term goals, scaling, new platforms.]
+  - *Key Features:*
+    - [Feature 1]
+    - [Feature 2]
+    - ...
+
+### 3. Technology Stack (Proposed)
+- **Frontend:** [Suggest a technology, e.g., React, Vue, etc.]
+- **Backend:** [Suggest a technology, e.g., Node.js, Python/Django, etc.]
+- **Database:** [Suggest a technology, e.g., PostgreSQL, MongoDB, etc.]
+- **Deployment:** [Suggest a platform, e.g., Vercel, AWS, etc.]
+
+### 4. Risks & Considerations
+- **Technical Risks:** [e.g., API limitations, performance bottlenecks]
+- **User Adoption:** [e.g., How to attract the first users?]
+
+Generate the `roadmap.md` file with this structure, filling in the details based on the user's request.
 """
