@@ -21,10 +21,10 @@ def clamp_title(title):
         return " ".join(words[:TITLE_WORD_CLAMP]) + "…"
     return title
 
-def send_telegram_message(token, chat_id, text):
-    """Sends a message to a Telegram chat using MarkdownV2."""
+def send_telegram_message(token, chat_id, text, parse_mode="MarkdownV2"):
+    """Sends a message to a Telegram chat."""
     url = f"https://api.telegram.org/bot{token}/sendMessage"
-    payload = { "chat_id": chat_id, "text": text, "parse_mode": "MarkdownV2", "disable_web_page_preview": True }
+    payload = { "chat_id": chat_id, "text": text, "parse_mode": parse_mode, "disable_web_page_preview": True }
     try:
         response = requests.post(url, json=payload, timeout=15)
         response.raise_for_status()
@@ -33,7 +33,8 @@ def send_telegram_message(token, chat_id, text):
         print(f"Error sending Telegram message: {e}", file=sys.stderr)
         if e.response is not None:
             print(f"Telegram API response: {e.response.text}", file=sys.stderr)
-        sys.exit(1)
+        # We let the main function handle the exit
+        raise
 
 def fetch_repo_data(repo_slug, token):
     """Fetches issue data for a single repository."""
@@ -50,7 +51,7 @@ def fetch_repo_data(repo_slug, token):
         return [], 0
 
     issues_url = f"https://api.github.com/repos/{repo_slug}/issues"
-    params = {"state": "open", "sort": "created", "direction": "desc", "per_page": ISSUES_PER_REPO_LIMIT}
+    params = {"state": "open", "sort": "created", "direction": "desc", "per_page": ISSES_PER_REPO_LIMIT}
     try:
         issues_response = requests.get(issues_url, headers=headers, params=params, timeout=10)
         issues_response.raise_for_status()
@@ -61,7 +62,6 @@ def fetch_repo_data(repo_slug, token):
 def generate_report_text():
     """
     Fetches all data and builds the final, formatted report string.
-    This function has no side effects (like sending messages).
     """
     gh_token = os.environ.get("GH_PAT")
     try:
@@ -101,26 +101,29 @@ def generate_report_text():
             more_count = total_open_count - len(actual_issues)
             message_parts.append(f"\nand {more_count} more issues")
             
-    # --- THE ONLY CHANGE IS ON THIS LINE ---
-    # We now join with two spaces before the newline for universal preview compatibility.
     return "  \n".join(message_parts)
 
 def main():
     """
-    This main function is for TESTING ONLY.
-    It generates the report and prints it to the console.
-    It DOES NOT send a message to Telegram.
+    Main execution block: generates the report and sends it to Telegram.
+    Includes error handling to send a failure notification.
     """
-    if not all([os.environ.get("GH_PAT"), os.environ.get("TELEGRAM_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")]):
-        sys.exit("Error: Required secrets are not set.")
+    telegram_token = os.environ.get("TELEGRAM_TOKEN")
+    telegram_chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    if not all([os.environ.get("GH_PAT"), telegram_token, telegram_chat_id]):
+        sys.exit("Error: One or more required secrets are not set.")
 
     try:
         final_message = generate_report_text()
-        print("--- START OF GENERATED MESSAGE ---")
-        print(final_message)
-        print("--- END OF GENERATED MESSAGE ---")
+        print("--- Sending final message to Telegram ---")
+        send_telegram_message(telegram_token, telegram_chat_id, final_message)
+
     except Exception as e:
-        print(f"An error occurred during message generation: {e}", file=sys.stderr)
+        print(f"An error occurred: {e}", file=sys.stderr)
+        # As per SPEC: send a short, clean error message on failure
+        failure_message = f"Weekend issues report — FAILED: {e}"
+        # Send failure message without markdown to ensure it always arrives.
+        send_telegram_message(telegram_token, telegram_chat_id, failure_message, parse_mode="None")
         sys.exit(1)
 
 if __name__ == "__main__":
