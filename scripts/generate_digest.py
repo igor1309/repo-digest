@@ -111,7 +111,7 @@ def main():
         
         actual_issues = [issue for issue in issues if 'pull_request' not in issue]
         if not actual_issues:
-            message_parts.append("No open issues.")
+            message_parts.append("No open issues")
             continue
 
 
