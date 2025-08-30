@@ -28,30 +28,28 @@ Produce an automated **Weekend Issues Report** sent to a Telegram bot on **Satur
 
 ## Selection & Sorting Rules (exact)
 - **Include:** All issues with `state=open` for each listed repo (explicit: open issues only).  
-  - If you meant differently (e.g., include closed), edit SPEC accordingly before implementation.
 - **Sort:** by `created_at` descending (newest created first).
-- **Display limit:** show up to **10** issues per repo. To detect overflow, request up to **11** items or use API pagination/headers. If total open > 10, append: `and N more issues` where `N = total_open - 10`.
+- **Display limit:** show up to **10** issues per repo. If total open > 10, append: `and N more issues` where `N = total_open - 10`.
 - **Title clamp:** truncate to **18 words** (split on whitespace). If truncated, append `…`. Word count, not characters.
 - **Date format:** `YYYY-MM-DD` (use the issue's `created_at` converted to UTC then formatted).
-- **Author:** include the issue author username prefixed with `@`.
-- **Link:** include full GitHub issue URL.
+- **Link:** include full GitHub issue URL as a clickable link.
 
 ---
 
-## Message format (Telegram legacy Markdown)
-- Use **legacy Markdown** (non-V2).
+## Message format (Telegram MarkdownV2)
+- Use **MarkdownV2**.
 - Single-run message: build a Markdown document containing repo sections in the same order as `repos.txt`.
 - Template:
 ```
-# Weekend issues report — Sat, 2025-09-06
+*Weekend issues report — Sat, 2025-09-06*
 
-## owner/repo-1
-1. Issue title (clamped to 18 words) — #123 — 2025-09-05 — @author — https://github.com/owner/repo-1/issues/123
-2. Another issue title … — #122 — 2025-09-04 — @someone — https://github.com/owner/repo-1/issues/122
+*owner/repo-1*
+1\. [#123 — 2025-09-05 — Issue title clamped to 18 words](https://github.com/owner/repo-1/issues/123)
+2\. [#122 — 2025-09-04 — Another issue title …](https://github.com/owner/repo-1/issues/122)
 
 and 7 more issues
 
-## owner/repo-2
+*owner/repo-2*
 No open issues.
 ```
 - If a repo has 0 open issues: show `No open issues.` under that repo heading.
@@ -59,18 +57,14 @@ No open issues.
 
 ---
 
-## Sanitization & Markdown safety (legacy Markdown rules)
-- Legacy Markdown accepts `*`, `_`, and backticks; however titles containing unmatched brackets or code ticks can break rendering.
-- Minimal sanitization required:
-  - Remove backticks `` ` `` from titles.
-  - Remove or neutralize stray unmatched `[` `]` `(` `)` characters that could break link parsing.
-  - Do not attempt full MarkdownV2 escaping; keep sanitization conservative to preserve readability.
-- Links and explicit `#<number>` tokens are safe to include.
+## Sanitization & Markdown safety (MarkdownV2 Escaping)
+- MarkdownV2 requires escaping of special characters (`_`, `*`, `[`, `]`, `(`, `)`, `~`, `\``, `>`, `#`, `+`, `-`, `=`, `|`, `{`, `}`, `.`, `!`).
+- All dynamic content (repo names, issue titles, dates) included in the message must be properly escaped with a preceding backslash `\` to render correctly.
 
 ---
 
 ## API usage & pagination notes
-- Use GitHub Issues API per repo: request open issues sorted by `created` (descending). Use `per_page=11` to detect overflow or query total counts via appropriate endpoints/headers.
+- To get an accurate count for the `and N more issues` message, first query the repository details endpoint (`/repos/{owner}/{repo}`) to get the exact `open_issues_count`. Then, fetch the issues list with `per_page=10`.
 - For private repos: authenticate with `GH_PAT` having necessary read scopes.
 - Respect API rate limits — personal use is unlikely to hit limits, but implement simple backoff on 429/abuse responses.
 
