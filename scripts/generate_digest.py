@@ -77,7 +77,9 @@ def generate_report_text():
     message_parts = [f"*Weekend issues report — {escape_markdown_v2(today)}*"]
 
     for repo_slug in repos:
-        message_parts.append(f"\n*{escape_markdown_v2(repo_slug)}*")
+        # --- THE ONLY CHANGE IS ON THIS LINE ---
+        # We now use backticks for the repo name to avoid Telegram's parser bug.
+        message_parts.append(f"\n`{repo_slug}`")
         
         issues, total_open_count = fetch_repo_data(repo_slug, gh_token)
         actual_issues = [issue for issue in issues if 'pull_request' not in issue]
