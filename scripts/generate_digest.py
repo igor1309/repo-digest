@@ -83,7 +83,7 @@ def generate_report_text():
         actual_issues = [issue for issue in issues if 'pull_request' not in issue]
 
         if total_open_count == 0 or not actual_issues:
-            message_parts.append("No open issues\\.")
+            message_parts.append("_No open issues\\._")
             continue
 
         for i, issue in enumerate(actual_issues):
