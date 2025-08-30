@@ -2,7 +2,6 @@
 
 name: Weekend Issues Digest
 
-# This workflow can be triggered manually from the Actions tab
 on:
   workflow_dispatch:
 
@@ -10,12 +9,24 @@ jobs:
   build_and_send_digest:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Check out the repository's code so we can access repos.txt
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Read and display the contents of repos.txt to verify access
-      - name: Read repos.txt
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10' # Specify a Python version
+
+      - name: Install dependencies
         run: |
-          echo "Reading repositories from repos.txt:"
-          cat repos.txt
+          python -m pip install --upgrade pip
+          # We will need the 'requests' library later, so we install it now.
+          pip install requests
+
+      - name: Run Digest Generator
+        # Pass secrets to the script as environment variables for security
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python scripts/generate_digest.py
