@@ -73,38 +73,56 @@ def generate_report_text():
     if not repos:
         return "No repositories configured in repos\\.txt\\."
 
-    today = datetime.utcnow().strftime("%a, %Y-%m-%d")
-    message_parts = [f"*Weekend issues report — {escape_markdown_v2(today)}*"]
+    # --- START OF SURGICAL CHANGE ---
+    
+    # Stage 1: Sort repositories into two lists
+    repos_with_issues_parts = []
+    repos_without_issues = []
 
     for repo_slug in repos:
-        # --- THE ONLY CHANGE IS IN THE NEXT FEW LINES ---
-        # Get only the repo name from the "owner/repo" slug
-        repo_name = repo_slug.split('/')[-1]
-        # Escape the name for safety and format it as bold
-        escaped_repo_name = escape_markdown_v2(repo_name)
-        message_parts.append(f"\n*{escaped_repo_name}*")
-        
         issues, total_open_count = fetch_repo_data(repo_slug, gh_token)
         actual_issues = [issue for issue in issues if 'pull_request' not in issue]
 
         if total_open_count == 0 or not actual_issues:
-            message_parts.append("_No open issues\\._")
-            continue
-
-        for i, issue in enumerate(actual_issues):
-            clamped_title = clamp_title(issue['title'])
-            issue_num = issue['number']
-            created_at = datetime.fromisoformat(issue['created_at'].replace("Z", "+00:00"))
-            date_str = created_at.strftime("%Y-%m-%d")
-            url = issue['html_url']
+            repos_without_issues.append(repo_slug)
+        else:
+            # Build the multi-line string block for this repo
+            repo_name = repo_slug.split('/')[-1]
+            escaped_repo_name = escape_markdown_v2(repo_name)
             
-            link_text = f"#{issue_num} — {date_str} — {clamped_title}"
-            escaped_link_text = escape_markdown_v2(link_text)
-            message_parts.append(f"{i + 1}\\. [{escaped_link_text}]({url})")
+            single_repo_parts = [f"\n*{escaped_repo_name}*"]
+            for i, issue in enumerate(actual_issues):
+                clamped_title = clamp_title(issue['title'])
+                issue_num = issue['number']
+                created_at = datetime.fromisoformat(issue['created_at'].replace("Z", "+00:00"))
+                date_str = created_at.strftime("%Y-%m-%d")
+                url = issue['html_url']
+                link_text = f"#{issue_num} — {date_str} — {clamped_title}"
+                escaped_link_text = escape_markdown_v2(link_text)
+                single_repo_parts.append(f"{i + 1}\\. [{escaped_link_text}]({url})")
 
-        if total_open_count > len(actual_issues):
-            more_count = total_open_count - len(actual_issues)
-            message_parts.append(f"\nand {more_count} more issues")
+            if total_open_count > len(actual_issues):
+                more_count = total_open_count - len(actual_issues)
+                single_repo_parts.append(f"\nand {more_count} more issues")
+            
+            repos_with_issues_parts.append("  \n".join(single_repo_parts))
+
+    # Stage 2: Assemble the final message from the sorted parts
+    today = datetime.utcnow().strftime("%a, %Y-%m-%d")
+    message_parts = [f"*Weekend issues report — {escape_markdown_v2(today)}*"]
+    
+    # Add the sections for repos that have issues
+    message_parts.extend(repos_with_issues_parts)
+
+    # Add the "No issues" section if there are any such repos
+    if repos_without_issues:
+        message_parts.append("\n*No issues*")
+        for repo_slug in repos_without_issues:
+            repo_name = repo_slug.split('/')[-1]
+            escaped_repo_name = escape_markdown_v2(repo_name)
+            message_parts.append(f"\\- {escaped_repo_name}")
+            
+    # --- END OF SURGICAL CHANGE ---
             
     return "  \n".join(message_parts)
 
@@ -125,9 +143,7 @@ def main():
 
     except Exception as e:
         print(f"An error occurred: {e}", file=sys.stderr)
-        # As per SPEC: send a short, clean error message on failure
         failure_message = f"Weekend issues report — FAILED: {e}"
-        # Send failure message without markdown to ensure it always arrives.
         send_telegram_message(telegram_token, telegram_chat_id, failure_message, parse_mode="None")
         sys.exit(1)
 
