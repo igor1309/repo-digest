@@ -4,6 +4,8 @@ name: Weekend Issues Digest
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "15 4 * * 6,0"
 
 jobs:
   build_and_send_digest:
