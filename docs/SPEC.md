@@ -55,9 +55,7 @@ and 7 more issues
 No open issues.
 ```
 - If a repo has 0 open issues: show `No open issues.` under that repo heading.
-- Keep each Telegram message ≤ **4096 characters**. If the composed report exceeds that:
-  - Split into additional messages by whole repo sections; avoid splitting a repo section across messages unless a single section itself exceeds the limit.
-  - If a single repo section exceeds 4096 chars, split between items within that section.
+- **Message length:** The report is generated as a single message. In the rare case it exceeds Telegram's character limit (4096 chars), it may be truncated. No complex message splitting logic will be implemented.
 
 ---
 
@@ -98,7 +96,6 @@ Weekend issues report — FAILED: <short error summary>
    - Issues sorted by creation date descending.
    - Titles clamped to 18 words and show `…` if truncated.
    - `and N more issues` appears when there are >10 open issues.
-   - Messages do not exceed 4096 chars; splitting behavior is correct.
 5. Test error path by using invalid `GH_PAT` and confirm a short failure message delivered.
 
 ---
@@ -122,5 +119,3 @@ Weekend issues report — FAILED: <short error summary>
 - Keep `repos.txt` under version control for auditability.
 - If you need per-repo metadata later, consider migrating to a structured `repos.yaml` and update SPEC accordingly.
 - This SPEC is the single source of truth for behavior — update it if you change message rules, limits, or schedule.
-
----
