@@ -1,0 +1,6 @@
+description="Consider stet by step project evolution"
+prompt="""
+Your task is to develop {{args}}
+
+Create `roadmap.md` file based on my desription.
+"""
