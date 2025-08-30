@@ -1,0 +1,21 @@
+# .github/workflows/digest.yml
+
+name: Weekend Issues Digest
+
+# This workflow can be triggered manually from the Actions tab
+on:
+  workflow_dispatch:
+
+jobs:
+  build_and_send_digest:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Check out the repository's code so we can access repos.txt
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Read and display the contents of repos.txt to verify access
+      - name: Read repos.txt
+        run: |
+          echo "Reading repositories from repos.txt:"
+          cat repos.txt
