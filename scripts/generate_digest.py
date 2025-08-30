@@ -38,7 +38,7 @@ def send_telegram_message(token, chat_id, text):
 def fetch_repo_data(repo_slug, token):
     """Fetches issue data for a single repository."""
     headers = {"Authorization": f"token {token}", "Accept": "application/vnd.github.v3+json"}
-    repo_details_url = f"{API_URL}/repos/{repo_slug}"
+    repo_details_url = f"https://api.github.com/repos/{repo_slug}"
     try:
         repo_response = requests.get(repo_details_url, headers=headers, timeout=10)
         repo_response.raise_for_status()
@@ -49,7 +49,7 @@ def fetch_repo_data(repo_slug, token):
     if total_open_issues == 0:
         return [], 0
 
-    issues_url = f"{API_URL}/repos/{repo_slug}/issues"
+    issues_url = f"https://api.github.com/repos/{repo_slug}/issues"
     params = {"state": "open", "sort": "created", "direction": "desc", "per_page": ISSUES_PER_REPO_LIMIT}
     try:
         issues_response = requests.get(issues_url, headers=headers, params=params, timeout=10)
@@ -77,8 +77,6 @@ def generate_report_text():
     message_parts = [f"*Weekend issues report — {escape_markdown_v2(today)}*"]
 
     for repo_slug in repos:
-        # --- THE ONLY CHANGE IS ON THIS LINE ---
-        # We now use backticks for the repo name to avoid Telegram's parser bug.
         message_parts.append(f"\n`{repo_slug}`")
         
         issues, total_open_count = fetch_repo_data(repo_slug, gh_token)
@@ -103,7 +101,9 @@ def generate_report_text():
             more_count = total_open_count - len(actual_issues)
             message_parts.append(f"\nand {more_count} more issues")
             
-    return "\n".join(message_parts)
+    # --- THE ONLY CHANGE IS ON THIS LINE ---
+    # We now join with two spaces before the newline for universal preview compatibility.
+    return "  \n".join(message_parts)
 
 def main():
     """
