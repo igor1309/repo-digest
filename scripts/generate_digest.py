@@ -77,7 +77,12 @@ def generate_report_text():
     message_parts = [f"*Weekend issues report — {escape_markdown_v2(today)}*"]
 
     for repo_slug in repos:
-        message_parts.append(f"\n`{repo_slug}`")
+        # --- THE ONLY CHANGE IS IN THE NEXT FEW LINES ---
+        # Get only the repo name from the "owner/repo" slug
+        repo_name = repo_slug.split('/')[-1]
+        # Escape the name for safety and format it as bold
+        escaped_repo_name = escape_markdown_v2(repo_name)
+        message_parts.append(f"\n*{escaped_repo_name}*")
         
         issues, total_open_count = fetch_repo_data(repo_slug, gh_token)
         actual_issues = [issue for issue in issues if 'pull_request' not in issue]
