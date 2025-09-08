@@ -1,3 +1,4 @@
+igor1309/ai-coder
 igor1309/ai-collection
 igor1309/avotsnod.cc
 igor1309/burnlink
