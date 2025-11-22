@@ -3,6 +3,7 @@ igor1309/ai-collection
 igor1309/avotsnod.cc
 igor1309/burnlink
 igor1309/cortagora
+igor1309/dev-tools
 igor1309/Enoa
 igor1309/enoa-app-back
 igor1309/enoa-app-front
@@ -12,4 +13,5 @@ igor1309/n8n-self
 igor1309/sentidex
 igor1309/swift-files-to-context
 igor1309/swift-imrx
+igor1309/swift-tools
 igor1309/weekend-issues-digest
