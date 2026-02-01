@@ -1,3 +1,9 @@
+---
+date: 2026-02-01
+model: gpt-5.2
+description: "Authoritative behavior and workflow rules for the digest automation."
+---
+
 # SPEC — Weekend Issues Digest
 
 This SPEC is the authoritative implementation document for **Weekend Issues Digest**.
@@ -27,6 +33,12 @@ Produce an automated **Weekend Issues Report** sent to a Telegram bot on **Satur
   - `TELEGRAM_CHAT_ID` — numeric chat or channel id.
 
 - Workflow: stored in this repo (automation repo). Reads `repos.txt` at runtime.
+
+---
+
+## Repo list check
+
+The workflow runs `scripts/diff-repos-txt-vs-live.sh` (since `2025-01-01`) and sends a Telegram MarkdownV2 message listing any missing repos. The digest still runs regardless of the check result.
 
 ---
 

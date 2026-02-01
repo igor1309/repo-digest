@@ -47,3 +47,19 @@ scripts/diff-repos-txt-vs-live.sh 2025-01-01
 ```
 
 If the date is omitted, it uses the default from `scripts/list-updated-private-repos.sh`.
+
+### Notify missing repos
+
+`scripts/notify-missing-repos.sh` runs the diff and sends a Telegram MarkdownV2 message when `repos.txt` is missing any live repos. It does not block the digest.
+
+Usage:
+
+```
+scripts/notify-missing-repos.sh 2025-01-01
+```
+
+Dry run (prints the message instead of sending):
+
+```
+scripts/notify-missing-repos.sh --dry-run 2025-01-01
+```
