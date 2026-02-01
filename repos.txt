@@ -6,6 +6,7 @@ igor1309/avotsnod.cc
 igor1309/avotsnod-script-docs
 igor1309/billable-backend
 igor1309/burnlink
+igor1309/ci-shared
 igor1309/cortagora
 igor1309/dev-skills
 igor1309/dev-tools
