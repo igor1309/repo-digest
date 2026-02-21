@@ -24,7 +24,15 @@ Workflow: `.github/workflows/weekly-releases-to-telegram.yml`
 - Schedule: Saturday at `04:55 UTC` (`07:55 MSK`).
 - Trigger: scheduled and manual (`workflow_dispatch`) with optional inputs `days` and `includePrereleases`.
 - Purpose: fetch releases published in the lookback window and send a release digest to Telegram.
+- Quality gate: runs the shared test command before sending Telegram messages.
 - Secrets: `GH_TOKEN` (or `GH_PAT`), `TELEGRAM_BOT_TOKEN` (or `TELEGRAM_TOKEN`), `TELEGRAM_CHAT_ID`.
+
+### CI
+
+Workflow: `.github/workflows/ci.yml`
+
+- Trigger: every `push` and `pull_request` to `trunk`.
+- Purpose: run automated checks continuously with the same command used locally.
 
 ## Setup
 
@@ -47,6 +55,16 @@ Run tests via the stable wrapper:
 `scripts/run_silent.sh` delegates to `vendor/ci-shared/scripts/run_silent.sh`, pinned to a specific `ci-shared` commit.
 
 ## Scripts
+
+### Test entrypoint
+
+`scripts/test.sh` is the shared test entrypoint used by both local runs and GitHub Actions.
+
+Usage:
+
+```bash
+./scripts/test.sh
+```
 
 ### Weekly releases to Telegram
 

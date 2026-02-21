@@ -2,6 +2,12 @@
 
 ## 21.02.2026
 
+- Add a dedicated CI workflow that runs on each push and on pull requests to `trunk`, so test regressions are blocked before release automation.
+- Standardize test execution around one shared command (`./scripts/run_silent.sh "tests" ./scripts/test.sh`) for both local and CI runs.
+- Vendor and pin `ci-shared` run wrapper to a fixed commit, reducing drift and keeping test output compact but debuggable.
+- Improve weekly release message header readability with period-aware formatting and context-aware title (`Releases this week` vs `Releases in ...`).
+- Render release message header in bold in Telegram using HTML parse mode for clearer scanability.
+- Add focused automated coverage for period formatting and header selection rules to prevent future formatting regressions.
 - Compact weekly release digest items into single clickable links in Telegram to reduce message length and improve scanability.
 - Fix weekly releases workflow secret mapping with fallbacks to existing repo secrets (`GH_PAT`, `TELEGRAM_TOKEN`).
 - Rename repo from `weekend-issues-digest` to `repo-digest` and update README for both workflows (schedule, triggers, purpose, secrets).
