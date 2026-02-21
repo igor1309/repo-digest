@@ -12,6 +12,49 @@ function fmtDate(date) {
   return date.toISOString().slice(0, 10);
 }
 
+function parseSemanticVersion(title) {
+  const match = String(title).trim().match(/^v?(\d+)\.(\d+)\.(\d+)(?:[-+][0-9A-Za-z.-]+)?$/);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    major: Number.parseInt(match[1], 10),
+    minor: Number.parseInt(match[2], 10),
+    patch: Number.parseInt(match[3], 10),
+  };
+}
+
+function compareSemanticVersionDesc(leftTitle, rightTitle) {
+  const leftVersion = parseSemanticVersion(leftTitle);
+  const rightVersion = parseSemanticVersion(rightTitle);
+
+  if (leftVersion && rightVersion) {
+    if (leftVersion.major !== rightVersion.major) return rightVersion.major - leftVersion.major;
+    if (leftVersion.minor !== rightVersion.minor) return rightVersion.minor - leftVersion.minor;
+    if (leftVersion.patch !== rightVersion.patch) return rightVersion.patch - leftVersion.patch;
+    return 0;
+  }
+
+  if (leftVersion) return -1;
+  if (rightVersion) return 1;
+  return 0;
+}
+
+function compareReleaseOrder(left, right) {
+  const semanticVersionOrder = compareSemanticVersionDesc(left.title, right.title);
+  if (semanticVersionOrder !== 0) {
+    return semanticVersionOrder;
+  }
+
+  const publishedAtOrder = right.publishedAt.getTime() - left.publishedAt.getTime();
+  if (publishedAtOrder !== 0) {
+    return publishedAtOrder;
+  }
+
+  return left.title.localeCompare(right.title);
+}
+
 export function buildReleaseLines(releases) {
   const releasesByRepository = new Map();
 
@@ -31,7 +74,9 @@ export function buildReleaseLines(releases) {
 
     lines.push(`<i>${escapeHtml(repositoryName)}</i>`);
 
-    for (const release of repositoryReleases) {
+    const sortedReleases = [...repositoryReleases].sort(compareReleaseOrder);
+
+    for (const release of sortedReleases) {
       const releaseLabel = `${release.title} (${fmtDate(release.publishedAt)})`;
       lines.push(`- <a href="${escapeHtml(release.url)}">${escapeHtml(releaseLabel)}</a>`);
     }
