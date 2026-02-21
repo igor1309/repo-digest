@@ -6,6 +6,7 @@
  */
 
 import { buildHeader } from "./weekly_releases_period.mjs";
+import { buildTelegramMessage, escapeHtml } from "./weekly_releases_telegram.mjs";
 
 const DAYS_DEFAULT = "7";
 const RELEASES_PAGE_SIZE = 100;
@@ -47,16 +48,13 @@ async function ghGraphQL(query, variables) {
 }
 
 async function telegramSend(text) {
-  // Telegram limit is ~4096 chars; keep margin.
-  const safe = text.length > 3800 ? text.slice(0, 3800) + "\n\n…(truncated)" : text;
-
   const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       chat_id: TELEGRAM_CHAT_ID,
-      text: safe,
+      text,
       parse_mode: "HTML",
       disable_web_page_preview: true,
     }),
@@ -116,13 +114,6 @@ function parsePositiveInteger(rawValue, fieldName) {
 
 function fmtDate(d) {
   return d.toISOString().slice(0, 10);
-}
-
-function escapeHtml(text) {
-  return String(text)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
 }
 
 function releaseTitle(r) {
@@ -218,17 +209,12 @@ async function main() {
 
   const now = new Date();
   const header = buildHeader(since, now);
+  const releaseLines = all.map(
+    release => `- <a href="${escapeHtml(release.url)}">${escapeHtml(release.repo)}: ${escapeHtml(release.title)}</a> (${fmtDate(release.publishedAt)})`,
+  );
+  const message = buildTelegramMessage(header, releaseLines);
 
-  let body;
-  if (all.length === 0) {
-    body = escapeHtml("No releases found in this period.");
-  } else {
-    body = all
-      .map(r => `- <a href="${escapeHtml(r.url)}">${escapeHtml(r.repo)}: ${escapeHtml(r.title)}</a> (${fmtDate(r.publishedAt)})`)
-      .join("\n");
-  }
-
-  await telegramSend(`<b>${escapeHtml(header)}</b>\n\n${body}`);
+  await telegramSend(message);
   console.log(`Sent ${all.length} release(s) to Telegram.`);
 }
 

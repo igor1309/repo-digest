@@ -2,6 +2,8 @@
 
 ## 21.02.2026
 
+- Fix Telegram HTML parsing failures in weekly release runs by switching to line-safe truncation that never cuts message tags.
+- Add regression coverage for Telegram message rendering/truncation so future formatting changes cannot reintroduce invalid HTML payloads.
 - Add a dedicated CI workflow that runs on each push and on pull requests to `trunk`, so test regressions are blocked before release automation.
 - Standardize test execution around one shared command (`./scripts/run_silent.sh "tests" ./scripts/test.sh`) for both local and CI runs.
 - Vendor and pin `ci-shared` run wrapper to a fixed commit, reducing drift and keeping test output compact but debuggable.
