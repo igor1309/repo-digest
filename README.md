@@ -75,6 +75,7 @@ Usage:
 - Scans only repositories where you are `OWNER` (personal repos). If needed, this can be extended to include org repositories you are a member of.
 - Requires `GH_TOKEN` (the script does not fall back to `GITHUB_TOKEN`).
 - Paginates releases per repository to avoid missing recent releases in high-activity repos.
+- Splits oversized Telegram payloads into continuation messages so release lists are not truncated.
 
 ### List updated private repos
 

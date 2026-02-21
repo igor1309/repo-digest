@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildReleaseLines, buildTelegramMessage } from "./weekly_releases_telegram.mjs";
+import { buildReleaseLines, buildTelegramMessage, buildTelegramMessages } from "./weekly_releases_telegram.mjs";
 
 function countOccurrences(text, token) {
   return text.split(token).length - 1;
@@ -71,4 +71,21 @@ test("buildReleaseLines shouldSortSemanticVersionsDescending_onUnsortedRepositor
     "- <a href=\"https://example.com/r4\">v0.9.3 (2026-02-21)</a>",
     "- <a href=\"https://example.com/r1\">v0.2.2 (2026-02-21)</a>",
   ]);
+});
+
+test("buildTelegramMessages shouldSplitLinesAcrossMessages_onBodyExceedingMaxLength", () => {
+  const releaseLines = [
+    "- <a href=\"https://example.com/1\">repo/one: First release</a> (2026-02-21)",
+    "- <a href=\"https://example.com/2\">repo/two: Second release</a> (2026-02-20)",
+    "- <a href=\"https://example.com/3\">repo/three: Third release</a> (2026-02-19)",
+  ];
+  const messages = buildTelegramMessages("Releases this week (14-21.02.2026)", releaseLines, { maxLength: 150 });
+
+  assert.equal(messages.length, 3);
+  assert.ok(messages.every($0 => $0.length <= 150));
+  assert.ok(messages.every($0 => !String($0).includes("…(truncated)")));
+  assert.equal(
+    countOccurrences(messages.join("\n"), "<a "),
+    countOccurrences(messages.join("\n"), "</a>"),
+  );
 });

@@ -5,6 +5,7 @@
 - Sort grouped release bullets by semantic version in descending order (for tags like `v0.15.10`) so Telegram output stays naturally ordered within each repository section.
 - Group weekly release digest rows by repository with italic repo headers and blank section separators, removing repeated `owner/repo` text on every bullet.
 - Make each weekly release bullet a single clickable version/date link (`vX.Y.Z (YYYY-MM-DD)`) and add regression coverage for grouped rendering.
+- Stop truncating weekly release digests by splitting long outputs into multiple Telegram messages with continuation headers.
 - Fix Telegram HTML parsing failures in weekly release runs by switching to line-safe truncation that never cuts message tags.
 - Add regression coverage for Telegram message rendering/truncation so future formatting changes cannot reintroduce invalid HTML payloads.
 - Add a dedicated CI workflow that runs on each push and on pull requests to `trunk`, so test regressions are blocked before release automation.

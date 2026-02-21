@@ -6,7 +6,7 @@
  */
 
 import { buildHeader } from "./weekly_releases_period.mjs";
-import { buildReleaseLines, buildTelegramMessage } from "./weekly_releases_telegram.mjs";
+import { buildReleaseLines, buildTelegramMessages } from "./weekly_releases_telegram.mjs";
 
 const DAYS_DEFAULT = "7";
 const RELEASES_PAGE_SIZE = 100;
@@ -206,10 +206,13 @@ async function main() {
   const now = new Date();
   const header = buildHeader(since, now);
   const releaseLines = buildReleaseLines(all);
-  const message = buildTelegramMessage(header, releaseLines);
+  const messages = buildTelegramMessages(header, releaseLines);
 
-  await telegramSend(message);
-  console.log(`Sent ${all.length} release(s) to Telegram.`);
+  for (const message of messages) {
+    await telegramSend(message);
+  }
+
+  console.log(`Sent ${all.length} release(s) to Telegram in ${messages.length} message(s).`);
 }
 
 main().catch(err => {

@@ -110,6 +110,27 @@ function appendLinesWithinLimit(prefix, lines, maxLength) {
   return message;
 }
 
+function appendChunkWithinLimit(prefix, lines, startIndex, maxLength) {
+  let message = prefix;
+  let index = startIndex;
+  let lineCount = 0;
+
+  while (index < lines.length) {
+    const separator = lineCount === 0 ? "" : "\n";
+    const next = `${message}${separator}${lines[index]}`;
+
+    if (next.length > maxLength) {
+      break;
+    }
+
+    message = next;
+    index += 1;
+    lineCount += 1;
+  }
+
+  return { message, nextIndex: index, lineCount };
+}
+
 export function buildTelegramMessage(header, releaseLines, options = {}) {
   const maxLength = options.maxLength || TELEGRAM_SOFT_LIMIT;
   const noReleasesText = options.noReleasesText || "No releases found in this period.";
@@ -120,4 +141,34 @@ export function buildTelegramMessage(header, releaseLines, options = {}) {
   }
 
   return appendLinesWithinLimit(prefix, releaseLines, maxLength);
+}
+
+export function buildTelegramMessages(header, releaseLines, options = {}) {
+  const maxLength = options.maxLength || TELEGRAM_SOFT_LIMIT;
+  const noReleasesText = options.noReleasesText || "No releases found in this period.";
+  const continuationSuffix = options.continuationSuffix || " (cont.)";
+  const prefix = `<b>${escapeHtml(header)}</b>\n\n`;
+  const continuationPrefix = `<b>${escapeHtml(`${header}${continuationSuffix}`)}</b>\n\n`;
+
+  if (releaseLines.length === 0) {
+    return [`${prefix}${escapeHtml(noReleasesText)}`];
+  }
+
+  const messages = [];
+  let index = 0;
+  let currentPrefix = prefix;
+
+  while (index < releaseLines.length) {
+    const chunk = appendChunkWithinLimit(currentPrefix, releaseLines, index, maxLength);
+
+    if (chunk.lineCount === 0) {
+      return [buildTelegramMessage(header, releaseLines, options)];
+    }
+
+    messages.push(chunk.message);
+    index = chunk.nextIndex;
+    currentPrefix = continuationPrefix;
+  }
+
+  return messages;
 }
