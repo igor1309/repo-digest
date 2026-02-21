@@ -8,6 +8,40 @@ export function escapeHtml(text) {
     .replaceAll(">", "&gt;");
 }
 
+function fmtDate(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+export function buildReleaseLines(releases) {
+  const releasesByRepository = new Map();
+
+  for (const release of releases) {
+    const repositoryReleases = releasesByRepository.get(release.repo) || [];
+    repositoryReleases.push(release);
+    releasesByRepository.set(release.repo, repositoryReleases);
+  }
+
+  const lines = [];
+  let isFirstRepository = true;
+
+  for (const [repositoryName, repositoryReleases] of releasesByRepository.entries()) {
+    if (!isFirstRepository) {
+      lines.push("");
+    }
+
+    lines.push(`<i>${escapeHtml(repositoryName)}</i>`);
+
+    for (const release of repositoryReleases) {
+      const releaseLabel = `${release.title} (${fmtDate(release.publishedAt)})`;
+      lines.push(`- <a href="${escapeHtml(release.url)}">${escapeHtml(releaseLabel)}</a>`);
+    }
+
+    isFirstRepository = false;
+  }
+
+  return lines;
+}
+
 function appendLinesWithinLimit(prefix, lines, maxLength) {
   let message = prefix;
 

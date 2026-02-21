@@ -6,7 +6,7 @@
  */
 
 import { buildHeader } from "./weekly_releases_period.mjs";
-import { buildTelegramMessage, escapeHtml } from "./weekly_releases_telegram.mjs";
+import { buildReleaseLines, buildTelegramMessage } from "./weekly_releases_telegram.mjs";
 
 const DAYS_DEFAULT = "7";
 const RELEASES_PAGE_SIZE = 100;
@@ -112,10 +112,6 @@ function parsePositiveInteger(rawValue, fieldName) {
   return value;
 }
 
-function fmtDate(d) {
-  return d.toISOString().slice(0, 10);
-}
-
 function releaseTitle(r) {
   return (r.name && r.name.trim()) ? r.name.trim() : r.tagName;
 }
@@ -209,9 +205,7 @@ async function main() {
 
   const now = new Date();
   const header = buildHeader(since, now);
-  const releaseLines = all.map(
-    release => `- <a href="${escapeHtml(release.url)}">${escapeHtml(release.repo)}: ${escapeHtml(release.title)}</a> (${fmtDate(release.publishedAt)})`,
-  );
+  const releaseLines = buildReleaseLines(all);
   const message = buildTelegramMessage(header, releaseLines);
 
   await telegramSend(message);

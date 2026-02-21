@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildTelegramMessage } from "./weekly_releases_telegram.mjs";
+import { buildReleaseLines, buildTelegramMessage } from "./weekly_releases_telegram.mjs";
 
 function countOccurrences(text, token) {
   return text.split(token).length - 1;
@@ -37,4 +37,21 @@ test("buildTelegramMessage shouldIncludeAllLines_onShortBody", () => {
   assert.ok(!message.includes("…(truncated)"));
   assert.equal(countOccurrences(message, "\n"), 3);
   assert.equal(countOccurrences(message, "<a "), 2);
+});
+
+test("buildReleaseLines shouldGroupByRepositoryAndLinkVersionDate_onReleasesFromMultipleRepositories", () => {
+  const releases = [
+    { repo: "igor1309/trend-scout-agent", title: "v0.9.3", url: "https://example.com/r1", publishedAt: new Date("2026-02-21T10:00:00Z") },
+    { repo: "igor1309/trend-scout-agent", title: "v0.9.2", url: "https://example.com/r2", publishedAt: new Date("2026-02-21T09:00:00Z") },
+    { repo: "igor1309/repo-digest", title: "v1.0.0", url: "https://example.com/r3", publishedAt: new Date("2026-02-20T10:00:00Z") },
+  ];
+
+  assert.deepEqual(buildReleaseLines(releases), [
+    "<i>igor1309/trend-scout-agent</i>",
+    "- <a href=\"https://example.com/r1\">v0.9.3 (2026-02-21)</a>",
+    "- <a href=\"https://example.com/r2\">v0.9.2 (2026-02-21)</a>",
+    "",
+    "<i>igor1309/repo-digest</i>",
+    "- <a href=\"https://example.com/r3\">v1.0.0 (2026-02-20)</a>",
+  ]);
 });
