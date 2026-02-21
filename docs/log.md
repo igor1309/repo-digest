@@ -2,6 +2,7 @@
 
 ## 21.02.2026
 
+- Compact weekly release digest items into single clickable links in Telegram to reduce message length and improve scanability.
 - Fix weekly releases workflow secret mapping with fallbacks to existing repo secrets (`GH_PAT`, `TELEGRAM_TOKEN`).
 - Rename repo from `weekend-issues-digest` to `repo-digest` and update README for both workflows (schedule, triggers, purpose, secrets).
 - Harden release-digest script: require `GH_TOKEN`, validate lookback days as positive integer, and paginate releases per repository.

@@ -224,7 +224,7 @@ async function main() {
     body = escapeHtml("No releases found in this period.");
   } else {
     body = all
-      .map(r => `- ${escapeHtml(r.repo)}: ${escapeHtml(r.title)} (${fmtDate(r.publishedAt)})\n  ${escapeHtml(r.url)}`)
+      .map(r => `- <a href="${escapeHtml(r.url)}">${escapeHtml(r.repo)}: ${escapeHtml(r.title)}</a> (${fmtDate(r.publishedAt)})`)
       .join("\n");
   }
 
