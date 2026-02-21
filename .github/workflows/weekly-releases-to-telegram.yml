@@ -1,0 +1,42 @@
+name: Weekly GitHub releases -> Telegram
+
+on:
+  schedule:
+    # Saturday 07:55 MSK (UTC+3) = Saturday 04:55 UTC.
+    - cron: "55 4 * * 6"
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Look back N days"
+        required: false
+        default: "7"
+      includePrereleases:
+        description: "Include prereleases"
+        required: false
+        default: "false"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: weekly-releases-to-telegram
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Send weekly releases to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN || secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          INPUT_DAYS: ${{ github.event.inputs.days }}
+          INPUT_INCLUDE_PRERELEASES: ${{ github.event.inputs.includePrereleases }}
+        run: node scripts/weekly_releases.mjs

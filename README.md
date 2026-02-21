@@ -1,28 +1,52 @@
----
-date: 2026-02-01
-model: gpt-5.2
-description: "Project overview and usage notes for helper scripts."
----
-
-# Weekend Issues Digest
+# Repo Digest
 
 ![bot_icon](bot_icon.JPG)
 
-**Weekend snapshot of open issues from your private GitHub repositories delivered to your Telegram bot.**
+**Telegram digests for private GitHub repositories: weekend open issues and weekly releases.**
 
-This is a simple personal automation that runs on a schedule to fetch open issues from your GitHub repositories and post a structured report to a Telegram chat. The report groups repositories with open issues, lists the newest issues for each, and summarizes the rest. Repositories with no open issues are listed separately.
+This repository contains personal automations that run on schedule and post structured reports to Telegram.
+
+## Workflows
+
+### Weekend issues digest
+
+Workflow: `.github/workflows/digest.yml`
+
+- Schedule: Saturday and Sunday at `04:15 UTC` (`07:15 MSK`).
+- Trigger: scheduled and manual (`workflow_dispatch`).
+- Purpose: fetch open issues from repositories in `repos.txt` and send a weekend digest to Telegram.
+- Secrets: `GH_PAT`, `TELEGRAM_TOKEN`, `TELEGRAM_CHAT_ID`.
+
+### Weekly releases to Telegram
+
+Workflow: `.github/workflows/weekly-releases-to-telegram.yml`
+
+- Schedule: Saturday at `04:55 UTC` (`07:55 MSK`).
+- Trigger: scheduled and manual (`workflow_dispatch`) with optional inputs `days` and `includePrereleases`.
+- Purpose: fetch releases published in the lookback window and send a release digest to Telegram.
+- Secrets: `GH_TOKEN` (or `GH_PAT`), `TELEGRAM_BOT_TOKEN` (or `TELEGRAM_TOKEN`), `TELEGRAM_CHAT_ID`.
 
 ## Setup
 
-To run this automation, you will need to configure:
+To run these automations, configure:
 
 - A list of your target GitHub repositories in `repos.txt` (keep it sorted).
-- Credentials for the GitHub API and a Telegram bot.
+- Credentials for the GitHub API and Telegram bot(s) required by each workflow.
 - A scheduled environment to execute the script.
 
 For all implementation details, message formats, and specific configuration values, please refer to **[SPEC.md](docs/SPEC.md)**, which is the single source of truth.
 
 ## Scripts
+
+### Weekly releases to Telegram
+
+`scripts/weekly_releases.mjs` queries GitHub GraphQL for releases and posts a digest to Telegram.
+
+- Filters to releases whose `publishedAt` is within the last N days (default `7`).
+- Skips drafts and, by default, prereleases. You can include prereleases via manual workflow trigger input.
+- Scans only repositories where you are `OWNER` (personal repos). If needed, this can be extended to include org repositories you are a member of.
+- Requires `GH_TOKEN` (the script does not fall back to `GITHUB_TOKEN`).
+- Paginates releases per repository to avoid missing recent releases in high-activity repos.
 
 ### List updated private repos
 
