@@ -32,6 +32,9 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Run tests
+        run: ./scripts/run_silent.sh "tests" ./scripts/test.sh
+
       - name: Send weekly releases to Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN || secrets.TELEGRAM_TOKEN }}

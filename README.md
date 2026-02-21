@@ -36,6 +36,16 @@ To run these automations, configure:
 
 For all implementation details, message formats, and specific configuration values, please refer to **[SPEC.md](docs/SPEC.md)**, which is the single source of truth.
 
+## Testing
+
+Run tests via the stable wrapper:
+
+```bash
+./scripts/run_silent.sh "tests" ./scripts/test.sh
+```
+
+`scripts/run_silent.sh` delegates to `vendor/ci-shared/scripts/run_silent.sh`, pinned to a specific `ci-shared` commit.
+
 ## Scripts
 
 ### Weekly releases to Telegram

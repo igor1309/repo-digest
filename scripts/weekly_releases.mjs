@@ -5,6 +5,8 @@
  * filters to last N days, then posts a digest to Telegram.
  */
 
+import { buildHeader } from "./weekly_releases_period.mjs";
+
 const DAYS_DEFAULT = "7";
 const RELEASES_PAGE_SIZE = 100;
 
@@ -116,40 +118,6 @@ function fmtDate(d) {
   return d.toISOString().slice(0, 10);
 }
 
-function pad2(value) {
-  return String(value).padStart(2, "0");
-}
-
-function fmtDateShort(d) {
-  return `${pad2(d.getUTCDate())}.${pad2(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}`;
-}
-
-function formatPeriod(startDate, endDate) {
-  const startDay = pad2(startDate.getUTCDate());
-  const startMonth = pad2(startDate.getUTCMonth() + 1);
-  const startYear = startDate.getUTCFullYear();
-  const endDay = pad2(endDate.getUTCDate());
-  const endMonth = pad2(endDate.getUTCMonth() + 1);
-  const endYear = endDate.getUTCFullYear();
-
-  if (startYear === endYear && startMonth === endMonth) {
-    return `${startDay}-${endDay}.${endMonth}.${endYear}`;
-  }
-
-  if (startYear === endYear) {
-    return `${startDay}.${startMonth}-${endDay}.${endMonth}.${endYear}`;
-  }
-
-  return `${fmtDateShort(startDate)}-${fmtDateShort(endDate)}`;
-}
-
-function daysBetweenUtc(startDate, endDate) {
-  const startUtc = Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate());
-  const endUtc = Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate());
-
-  return Math.round((endUtc - startUtc) / (24 * 60 * 60 * 1000));
-}
-
 function escapeHtml(text) {
   return String(text)
     .replaceAll("&", "&amp;")
@@ -249,9 +217,7 @@ async function main() {
   all.sort((a, b) => b.publishedAt - a.publishedAt);
 
   const now = new Date();
-  const isWeeklyPeriod = daysBetweenUtc(since, now) === 7;
-  const period = formatPeriod(since, now);
-  const header = isWeeklyPeriod ? `Releases this week (${period})` : `Releases in ${period}`;
+  const header = buildHeader(since, now);
 
   let body;
   if (all.length === 0) {
