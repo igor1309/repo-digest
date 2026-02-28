@@ -2,6 +2,7 @@ Absolute-Dream-Team/writer-assistant-app
 Absolute-Dream-Team/writer-assistant-front
 igor1309/ai-coder
 igor1309/ai-collection
+igor1309/ai-labs
 igor1309/avotsnod.cc
 igor1309/avotsnod-script-docs
 igor1309/billable-backend
@@ -27,4 +28,6 @@ igor1309/swift-files-to-context
 igor1309/swift-imrx
 igor1309/swift-tools
 igor1309/Todo
+igor1309/trend-scout-agent
+igor1309/trends
 igor1309/weekend-issues-digest
