@@ -76,7 +76,7 @@ and 7 more issues
 - project-four
 ```
 
-- **Message length:** The report is generated as a single message. In the rare case it exceeds Telegram's character limit (4096 chars), it may be truncated. No complex message splitting logic will be implemented.
+- **Message length:** When the report exceeds 4000 characters it is split into multiple Telegram messages. Each continuation message repeats the header with a `(cont.)` suffix. Sections (repo blocks, "No issues" block) are never split across messages.
 
 ---
 

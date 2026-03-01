@@ -6,60 +6,59 @@ from generate_digest import chunk_message, escape_markdown_v2, clamp_title, MESS
 class TestChunkMessage(unittest.TestCase):
 
     def test_returns_header_only_when_no_content(self):
-        result = chunk_message("*Header*", [])
+        result = chunk_message("Header", [])
         self.assertEqual(result, ["*Header*"])
 
     def test_single_chunk_when_content_fits(self):
-        header = "*Report*"
         sections = ["Section A", "Section B"]
-        result = chunk_message(header, sections, max_length=4000)
+        result = chunk_message("Report", sections, max_length=4000)
         self.assertEqual(len(result), 1)
         self.assertIn("Section A", result[0])
         self.assertIn("Section B", result[0])
         self.assertTrue(result[0].startswith("*Report*"))
 
     def test_splits_into_multiple_chunks_when_exceeding_limit(self):
-        header = "*H*"
         sections = ["A" * 50, "B" * 50, "C" * 50]
-        result = chunk_message(header, sections, max_length=70)
+        result = chunk_message("H", sections, max_length=70)
         self.assertGreater(len(result), 1)
         self.assertTrue(all(len(chunk) <= 70 for chunk in result))
 
     def test_continuation_header_on_subsequent_chunks(self):
-        header = "*H*"
         sections = ["A" * 50, "B" * 50]
-        result = chunk_message(header, sections, max_length=60)
+        result = chunk_message("H", sections, max_length=60)
         self.assertTrue(result[0].startswith("*H*"))
         self.assertIn("cont", result[1])
 
     def test_all_sections_present_across_chunks(self):
-        header = "*H*"
         sections = ["AAA", "BBB", "CCC"]
-        result = chunk_message(header, sections, max_length=25)
+        result = chunk_message("H", sections, max_length=25)
         combined = MESSAGE_SEPARATOR.join(result)
         for section in sections:
             self.assertIn(section, combined)
 
     def test_single_oversized_section_still_included(self):
-        header = "*H*"
         sections = ["X" * 200]
-        result = chunk_message(header, sections, max_length=100)
+        result = chunk_message("H", sections, max_length=100)
         self.assertEqual(len(result), 1)
         self.assertIn("X" * 200, result[0])
 
     def test_first_chunk_uses_original_header(self):
-        header = "*Weekend issues report — Sun, 2026\\-03\\-01*"
+        header_text = "Weekend issues report — Sun, 2026\\-03\\-01"
         sections = ["sec1"]
-        result = chunk_message(header, sections, max_length=4000)
-        self.assertTrue(result[0].startswith(header))
+        result = chunk_message(header_text, sections, max_length=4000)
+        self.assertTrue(result[0].startswith(f"*{header_text}*"))
 
     def test_continuation_header_format(self):
-        header = "*Weekend issues report — Sun, 2026\\-03\\-01*"
+        header_text = "Weekend issues report — Sun, 2026\\-03\\-01"
         sections = ["A" * 200, "B" * 200]
-        result = chunk_message(header, sections, max_length=260)
+        result = chunk_message(header_text, sections, max_length=270)
         self.assertIn("\\(cont\\.\\)", result[1])
         self.assertTrue(result[1].startswith("*Weekend issues report"))
         self.assertTrue(result[1].split(MESSAGE_SEPARATOR)[0].endswith("*"))
+
+    def test_wraps_header_in_bold(self):
+        result = chunk_message("Report title", ["content"])
+        self.assertTrue(result[0].startswith("*Report title*"))
 
 
 class TestEscapeMarkdownV2(unittest.TestCase):

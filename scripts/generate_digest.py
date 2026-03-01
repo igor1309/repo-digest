@@ -74,10 +74,10 @@ def generate_report_parts():
         raise Exception("repos.txt not found.")
 
     today = datetime.utcnow().strftime("%a, %Y-%m-%d")
-    header = f"*Weekend issues report — {escape_markdown_v2(today)}*"
+    header_text = f"Weekend issues report — {escape_markdown_v2(today)}"
 
     if not repos:
-        return header, ["No repositories configured in repos\\.txt\\."]
+        return header_text, ["No repositories configured in repos\\.txt\\."]
 
     repos_with_issues_parts = []
     repos_without_issues = []
@@ -109,25 +109,24 @@ def generate_report_parts():
 
             repos_with_issues_parts.append(MESSAGE_SEPARATOR.join(single_repo_parts))
 
-    content_sections = list(repos_with_issues_parts)
-
     if repos_without_issues:
         no_issues_lines = ["\n*No issues*"]
         for repo_slug in repos_without_issues:
             repo_name = repo_slug.split('/')[-1]
             escaped_repo_name = escape_markdown_v2(repo_name)
             no_issues_lines.append(f"\\- {escaped_repo_name}")
-        content_sections.append(MESSAGE_SEPARATOR.join(no_issues_lines))
+        repos_with_issues_parts.append(MESSAGE_SEPARATOR.join(no_issues_lines))
 
-    return header, content_sections
+    return header_text, repos_with_issues_parts
 
 
-def chunk_message(header, content_sections, max_length=TELEGRAM_MAX_LENGTH):
+def chunk_message(header_text, content_sections, max_length=TELEGRAM_MAX_LENGTH):
     """Group content sections into messages that fit within Telegram's character limit."""
+    header = f"*{header_text}*"
     if not content_sections:
         return [header]
 
-    cont_header = header[:-1] + " \\(cont\\.\\)*"
+    cont_header = f"*{header_text} \\(cont\\.\\)*"
     chunks = []
     current = header
     has_content = False
