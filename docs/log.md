@@ -3,6 +3,8 @@
 ## 01.03.2026
 
 - Migrate all Telegram sends to ci-shared `notify_telegram.sh` transport (3 scripts, 2 languages → 1 bash wrapper). Eliminates duplicated HTTP/retry logic across Node.js, Python, and embedded-Python call sites.
+- Split weekend issues digest into multiple Telegram messages when content exceeds the 4000-char limit, using continuation headers to keep context across chunks.
+- Add unit tests for digest chunking, escaping, and title clamping; extend test runner to cover Python tests.
 
 ## 21.02.2026
 
