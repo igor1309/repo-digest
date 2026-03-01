@@ -1,9 +1,12 @@
 # scripts/generate_digest.py
 import os
-import sys
-import requests
 import re
+import subprocess
+import sys
 from datetime import datetime
+from pathlib import Path
+
+import requests
 
 # --- Constants ---
 API_URL = "https://api.github.com"
@@ -21,20 +24,18 @@ def clamp_title(title):
         return " ".join(words[:TITLE_WORD_CLAMP]) + "…"
     return title
 
+NOTIFY_SCRIPT = Path(__file__).resolve().parent / "ci" / "notify_telegram.sh"
+
 def send_telegram_message(token, chat_id, text, parse_mode="MarkdownV2"):
-    """Sends a message to a Telegram chat."""
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
-    payload = { "chat_id": chat_id, "text": text, "parse_mode": parse_mode, "disable_web_page_preview": True }
-    try:
-        response = requests.post(url, json=payload, timeout=15)
-        response.raise_for_status()
-        print("Telegram message sent successfully.")
-    except requests.exceptions.RequestException as e:
-        print(f"Error sending Telegram message: {e}", file=sys.stderr)
-        if e.response is not None:
-            print(f"Telegram API response: {e.response.text}", file=sys.stderr)
-        # We let the main function handle the exit
-        raise
+    """Sends a message to a Telegram chat via ci-shared transport."""
+    env = {**os.environ, "TELEGRAM_DISABLE_PREVIEW": "true"}
+    if parse_mode and parse_mode != "None":
+        env["TELEGRAM_PARSE_MODE"] = parse_mode
+    subprocess.run(
+        [str(NOTIFY_SCRIPT), token, chat_id, text],
+        check=True,
+        env=env,
+    )
 
 def fetch_repo_data(repo_slug, token):
     """Fetches issue data for a single repository."""

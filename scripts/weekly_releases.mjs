@@ -5,6 +5,10 @@
  * filters to last N days, then posts a digest to Telegram.
  */
 
+import { execFileSync } from "node:child_process";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { buildHeader } from "./weekly_releases_period.mjs";
 import { buildReleaseLines, buildTelegramMessages } from "./weekly_releases_telegram.mjs";
 
@@ -47,23 +51,14 @@ async function ghGraphQL(query, variables) {
   return json.data;
 }
 
-async function telegramSend(text) {
-  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: TELEGRAM_CHAT_ID,
-      text,
-      parse_mode: "HTML",
-      disable_web_page_preview: true,
-    }),
-  });
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
+const NOTIFY_SCRIPT = resolve(SCRIPT_DIR, "ci/notify_telegram.sh");
 
-  const json = await res.json();
-  if (!res.ok || json.ok !== true) {
-    throw new Error(`Telegram send failed: ${JSON.stringify(json)}`);
-  }
+function telegramSend(messages) {
+  execFileSync(NOTIFY_SCRIPT, [TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, ...messages], {
+    stdio: "inherit",
+    env: { ...process.env, TELEGRAM_PARSE_MODE: "HTML", TELEGRAM_DISABLE_PREVIEW: "true" },
+  });
 }
 
 const OWNED_REPOSITORIES_QUERY = `
@@ -208,9 +203,7 @@ async function main() {
   const releaseLines = buildReleaseLines(all);
   const messages = buildTelegramMessages(header, releaseLines);
 
-  for (const message of messages) {
-    await telegramSend(message);
-  }
+  telegramSend(messages);
 
   console.log(`Sent ${all.length} release(s) to Telegram in ${messages.length} message(s).`);
 }

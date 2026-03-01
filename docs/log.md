@@ -1,5 +1,9 @@
 # Repo Digest Log
 
+## 01.03.2026
+
+- Migrate all Telegram sends to ci-shared `notify_telegram.sh` transport (3 scripts, 2 languages → 1 bash wrapper). Eliminates duplicated HTTP/retry logic across Node.js, Python, and embedded-Python call sites.
+
 ## 21.02.2026
 
 - Sort grouped release bullets by semantic version in descending order (for tags like `v0.15.10`) so Telegram output stays naturally ordered within each repository section.

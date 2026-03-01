@@ -22,50 +22,35 @@ if [ -z "$missing_list" ]; then
   exit 0
 fi
 
-DRY_RUN="$dry_run" MISSING_LIST="$missing_list" python - <<'PY'
-import os
-import re
-import requests
-import sys
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
-def escape_markdown_v2(text):
-    escape_chars = r'_*[]()~`>#+-=|{}.!'
-    return re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', str(text))
-
-token = os.environ.get("TELEGRAM_TOKEN")
-chat_id = os.environ.get("TELEGRAM_CHAT_ID")
-dry_run = os.environ.get("DRY_RUN") == "1"
-missing_raw = os.environ.get("MISSING_LIST", "")
-
-missing_items = [line.strip() for line in missing_raw.splitlines() if line.strip()]
-if not missing_items:
-    print("Missing list was empty after parsing. Skipping notification.")
-    sys.exit(0)
-
-header = f"*{escape_markdown_v2('Missing repos in repos.txt')}*"
-lines = [f"\\- {escape_markdown_v2(repo)}" for repo in missing_items]
-message = "\n".join([header, *lines])
-
-if dry_run:
-    print(message)
-    sys.exit(0)
-
-if not token or not chat_id:
-    print("Missing Telegram configuration. Skipping notification.", file=sys.stderr)
-    sys.exit(0)
-
-url = f"https://api.telegram.org/bot{token}/sendMessage"
-payload = {
-    "chat_id": chat_id,
-    "text": message,
-    "parse_mode": "MarkdownV2",
-    "disable_web_page_preview": True,
+# MarkdownV2: escape special characters in dynamic text.
+escape_mdv2() {
+  printf '%s' "$1" | sed 's/[][\\_.*()`~>#+=|{}!-]/\\&/g'
 }
 
-try:
-    response = requests.post(url, json=payload, timeout=15)
-    if response.status_code >= 400:
-        print(f"Telegram API error: {response.status_code} {response.text}", file=sys.stderr)
-except requests.RequestException as exc:
-    print(f"Failed to send Telegram message: {exc}", file=sys.stderr)
-PY
+# Build message
+header="*$(escape_mdv2 'Missing repos in repos.txt')*"
+body=""
+while IFS= read -r repo; do
+  [ -z "$repo" ] && continue
+  body="${body}
+\\- $(escape_mdv2 "$repo")"
+done <<< "$missing_list"
+
+message="${header}${body}"
+
+if [ "$dry_run" = "1" ]; then
+  printf '%s\n' "$message"
+  exit 0
+fi
+
+token="${TELEGRAM_TOKEN:-}"
+chat_id="${TELEGRAM_CHAT_ID:-}"
+if [ -z "$token" ] || [ -z "$chat_id" ]; then
+  echo "Missing Telegram configuration. Skipping notification." >&2
+  exit 0
+fi
+
+TELEGRAM_PARSE_MODE=MarkdownV2 TELEGRAM_DISABLE_PREVIEW=true \
+  "$script_dir/ci/notify_telegram.sh" "$token" "$chat_id" "$message"
