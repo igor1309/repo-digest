@@ -1,5 +1,10 @@
 # Repo Digest Log
 
+## 01.03.2026
+
+- Split weekend issues digest into multiple Telegram messages when content exceeds the 4000-char limit, using continuation headers to keep context across chunks.
+- Add unit tests for digest chunking, escaping, and title clamping; extend test runner to cover Python tests.
+
 ## 21.02.2026
 
 - Sort grouped release bullets by semantic version in descending order (for tags like `v0.15.10`) so Telegram output stays naturally ordered within each repository section.

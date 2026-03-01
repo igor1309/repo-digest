@@ -9,6 +9,8 @@ from datetime import datetime
 API_URL = "https://api.github.com"
 ISSUES_PER_REPO_LIMIT = 10
 TITLE_WORD_CLAMP = 18
+TELEGRAM_MAX_LENGTH = 4000
+MESSAGE_SEPARATOR = "  \n"
 
 def escape_markdown_v2(text):
     """Escapes text for Telegram's MarkdownV2 parser."""
@@ -59,9 +61,10 @@ def fetch_repo_data(repo_slug, token):
     except requests.exceptions.RequestException as e:
         raise Exception(f"GitHub API Error for {repo_slug} (issues): {e}")
 
-def generate_report_text():
+def generate_report_parts():
     """
-    Fetches all data and builds the final, formatted report string.
+    Fetches all data and builds the report header and content sections.
+    Returns (header, content_sections) where content_sections is a list of strings.
     """
     gh_token = os.environ.get("GH_PAT")
     try:
@@ -70,12 +73,12 @@ def generate_report_text():
     except FileNotFoundError:
         raise Exception("repos.txt not found.")
 
-    if not repos:
-        return "No repositories configured in repos\\.txt\\."
+    today = datetime.utcnow().strftime("%a, %Y-%m-%d")
+    header_text = f"Weekend issues report — {escape_markdown_v2(today)}"
 
-    # --- START OF SURGICAL CHANGE ---
-    
-    # Stage 1: Sort repositories into two lists
+    if not repos:
+        return header_text, ["No repositories configured in repos\\.txt\\."]
+
     repos_with_issues_parts = []
     repos_without_issues = []
 
@@ -86,10 +89,9 @@ def generate_report_text():
         if total_open_count == 0 or not actual_issues:
             repos_without_issues.append(repo_slug)
         else:
-            # Build the multi-line string block for this repo
             repo_name = repo_slug.split('/')[-1]
             escaped_repo_name = escape_markdown_v2(repo_name)
-            
+
             single_repo_parts = [f"\n*{escaped_repo_name}*"]
             for i, issue in enumerate(actual_issues):
                 clamped_title = clamp_title(issue['title'])
@@ -104,27 +106,44 @@ def generate_report_text():
             if total_open_count > len(actual_issues):
                 more_count = total_open_count - len(actual_issues)
                 single_repo_parts.append(f"\nand {more_count} more issues")
-            
-            repos_with_issues_parts.append("  \n".join(single_repo_parts))
 
-    # Stage 2: Assemble the final message from the sorted parts
-    today = datetime.utcnow().strftime("%a, %Y-%m-%d")
-    message_parts = [f"*Weekend issues report — {escape_markdown_v2(today)}*"]
-    
-    # Add the sections for repos that have issues
-    message_parts.extend(repos_with_issues_parts)
+            repos_with_issues_parts.append(MESSAGE_SEPARATOR.join(single_repo_parts))
 
-    # Add the "No issues" section if there are any such repos
     if repos_without_issues:
-        message_parts.append("\n*No issues*")
+        no_issues_lines = ["\n*No issues*"]
         for repo_slug in repos_without_issues:
             repo_name = repo_slug.split('/')[-1]
             escaped_repo_name = escape_markdown_v2(repo_name)
-            message_parts.append(f"\\- {escaped_repo_name}")
-            
-    # --- END OF SURGICAL CHANGE ---
-            
-    return "  \n".join(message_parts)
+            no_issues_lines.append(f"\\- {escaped_repo_name}")
+        repos_with_issues_parts.append(MESSAGE_SEPARATOR.join(no_issues_lines))
+
+    return header_text, repos_with_issues_parts
+
+
+def chunk_message(header_text, content_sections, max_length=TELEGRAM_MAX_LENGTH):
+    """Group content sections into messages that fit within Telegram's character limit."""
+    header = f"*{header_text}*"
+    if not content_sections:
+        return [header]
+
+    cont_header = f"*{header_text} \\(cont\\.\\)*"
+    chunks = []
+    current = header
+    has_content = False
+
+    for section in content_sections:
+        candidate = current + MESSAGE_SEPARATOR + section
+        if len(candidate) > max_length and has_content:
+            chunks.append(current)
+            current = cont_header
+            has_content = False
+            candidate = current + MESSAGE_SEPARATOR + section
+
+        current = candidate
+        has_content = True
+
+    chunks.append(current)
+    return chunks
 
 def main():
     """
@@ -137,9 +156,11 @@ def main():
         sys.exit("Error: One or more required secrets are not set.")
 
     try:
-        final_message = generate_report_text()
-        print("--- Sending final message to Telegram ---")
-        send_telegram_message(telegram_token, telegram_chat_id, final_message)
+        header, content_sections = generate_report_parts()
+        chunks = chunk_message(header, content_sections)
+        print(f"--- Sending {len(chunks)} message(s) to Telegram ---")
+        for chunk in chunks:
+            send_telegram_message(telegram_token, telegram_chat_id, chunk)
 
     except Exception as e:
         print(f"An error occurred: {e}", file=sys.stderr)
