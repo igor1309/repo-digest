@@ -3,7 +3,7 @@ name: Weekly GitHub releases -> Telegram
 on:
   schedule:
     # Saturday 07:55 MSK (UTC+3) = Saturday 04:55 UTC.
-    - cron: "55 4 * * 6"
+    - cron: "55 4 * * 6"   # 07:55 MSK Saturday
   workflow_dispatch:
     inputs:
       days:

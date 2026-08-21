@@ -5,7 +5,7 @@ name: Weekend Issues Digest
 on:
   workflow_dispatch:
   schedule:
-    - cron: "15 4 * * 6,0"
+    - cron: "15 4 * * 6,0"   # 07:15 MSK Saturday and Sunday
 
 jobs:
   build_and_send_digest:
