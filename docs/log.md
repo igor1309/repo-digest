@@ -1,5 +1,9 @@
 # Repo Digest Log
 
+## 23.08.2026
+
+- Add GitHub CLI-first repository instructions and a `CLAUDE.md` symlink so GitHub Actions maintenance starts from live repository state.
+
 ## 01.03.2026
 
 - Migrate all Telegram sends to ci-shared `notify_telegram.sh` transport (3 scripts, 2 languages → 1 bash wrapper). Eliminates duplicated HTTP/retry logic across Node.js, Python, and embedded-Python call sites.

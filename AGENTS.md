@@ -6,6 +6,11 @@ description: "Repo-specific agent rules for test execution and log maintenance."
 
 # Repo Agent Notes
 
+## GitHub CLI First
+
+- Use GitHub CLI (`gh`) first for GitHub repository, Actions, workflow, run, and API operations.
+- Ground live GitHub state with `gh` before changing workflow files or remote repository state.
+
 ## Tests Before Commit
 
 - Run tests before every commit using:
